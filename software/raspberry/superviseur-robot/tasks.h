@@ -33,6 +33,7 @@
 #include "comrobot.h"
 #include "camera.h"
 #include "img.h"
+#include <string>
 
 using namespace std;
 
@@ -76,6 +77,7 @@ private:
     RT_TASK th_openComRobot;
     RT_TASK th_startRobot;
     RT_TASK th_move;
+    RT_TASK th_levelBat;
     
     /**********************************************************************/
     /* Mutex                                                              */
@@ -84,6 +86,7 @@ private:
     RT_MUTEX mutex_robot;
     RT_MUTEX mutex_robotStarted;
     RT_MUTEX mutex_move;
+
 
     /**********************************************************************/
     /* Semaphores                                                         */
@@ -132,6 +135,10 @@ private:
      */
     void MoveTask(void *arg);
     
+    /**
+     * @brief Thread handling battery.
+     */
+    void BatteryTask(void *arg);
     /**********************************************************************/
     /* Queue services                                                     */
     /**********************************************************************/
