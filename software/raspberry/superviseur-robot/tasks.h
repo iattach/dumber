@@ -66,6 +66,7 @@ private:
     ComRobot robot;
     int robotStarted = 0;
     int move = MESSAGE_ROBOT_STOP;
+    bool watchdog = false;
     
     /**********************************************************************/
     /* Tasks                                                              */
@@ -76,6 +77,7 @@ private:
     RT_TASK th_openComRobot;
     RT_TASK th_startRobot;
     RT_TASK th_move;
+    RT_TASK th_detectComLostMonitor;
     
     /**********************************************************************/
     /* Mutex                                                              */
@@ -84,6 +86,7 @@ private:
     RT_MUTEX mutex_robot;
     RT_MUTEX mutex_robotStarted;
     RT_MUTEX mutex_move;
+    RT_MUTEX mutex_watchdog;
 
     /**********************************************************************/
     /* Semaphores                                                         */
@@ -92,6 +95,8 @@ private:
     RT_SEM sem_openComRobot;
     RT_SEM sem_serverOk;
     RT_SEM sem_startRobot;
+    RT_SEM sem_errSocket;
+    RT_SEM sem_restartServer;
 
     /**********************************************************************/
     /* Message queues                                                     */
@@ -131,6 +136,12 @@ private:
      * @brief Thread handling control of the robot.
      */
     void MoveTask(void *arg);
+    
+    /**
+    * @brief Thread detecting communication lost with monitor.
+    */
+    void DetectComLostMonitor(void *arg);
+    
     
     /**********************************************************************/
     /* Queue services                                                     */
