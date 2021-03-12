@@ -94,6 +94,10 @@ void Tasks::Init() {
         cerr << "Error semaphore create: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
+    if (err = rt_sem_create(&sem_startRobotWD, NULL, 0, S_FIFO)) {  //fonction 11 create sempahore
+        cerr << "Error semaphore create: " << strerror(-err) << endl << flush;
+        exit(EXIT_FAILURE);
+    }
     cout << "Semaphores created successfully" << endl << flush;
 
     /**************************************************************************************/
@@ -116,6 +120,10 @@ void Tasks::Init() {
         exit(EXIT_FAILURE);
     }
     if (err = rt_task_create(&th_startRobot, "th_startRobot", 0, PRIORITY_TSTARTROBOT, 0)) {
+        cerr << "Error task create: " << strerror(-err) << endl << flush;
+        exit(EXIT_FAILURE);
+    }
+    if (err = rt_task_create(&th_startRobotWD, "th_startRobotWD", 0, PRIORITY_TSTARTROBOT, 0)) {
         cerr << "Error task create: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
@@ -164,6 +172,10 @@ void Tasks::Run() {
         exit(EXIT_FAILURE);
     }
     if (err = rt_task_start(&th_startRobot, (void(*)(void*)) & Tasks::StartRobotTask, this)) {
+        cerr << "Error task start: " << strerror(-err) << endl << flush;
+        exit(EXIT_FAILURE);
+    }
+    if (err = rt_task_start(&th_startRobotWD, (void(*)(void*)) & Tasks::StartRobotTaskWD, this)) {
         cerr << "Error task start: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
@@ -274,6 +286,8 @@ void Tasks::ReceiveFromMonTask(void *arg) {
             rt_sem_v(&sem_openComRobot);
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_START_WITHOUT_WD)) {
             rt_sem_v(&sem_startRobot);
+        } else if (msgRcv->CompareID(MESSAGE_ROBOT_START_WITH_WD)){
+            rt_sem_v(&sem_startRobotWD);                            //fonction 11 : detected start with wd
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_GO_FORWARD) ||
                 msgRcv->CompareID(MESSAGE_ROBOT_GO_BACKWARD) ||
                 msgRcv->CompareID(MESSAGE_ROBOT_GO_LEFT) ||
@@ -343,7 +357,7 @@ void Tasks::StartRobotTask(void *arg) {
         cout << msgSend->GetID();
         cout << ")" << endl;
 
-        cout << "Movement answer: " << msgSend->ToString() << endl << flush;
+        cout << "Start answer: " << msgSend->ToString() << endl << flush;
         WriteInQueue(&q_messageToMon, msgSend);  // msgSend will be deleted by sendToMon
 
         if (msgSend->GetID() == MESSAGE_ANSWER_ACK) {
@@ -354,6 +368,63 @@ void Tasks::StartRobotTask(void *arg) {
     }
 }
 
+/**
+ * @brief Thread starting the communication with the robot with watchdog.
+ */
+void Tasks::StartRobotTaskWD(void *arg) {
+    cout << "Start " << __PRETTY_FUNCTION__ << endl << flush;
+    // Synchronization barrier (waiting that all tasks are starting)
+    rt_sem_p(&sem_barrier, TM_INFINITE);
+    
+    /**************************************************************************************/
+    /* The task startRobot starts here                                                    */
+    /**************************************************************************************/
+    while (1) {
+
+        Message * msgSend;
+        rt_sem_p(&sem_startRobotWD, TM_INFINITE);
+        cout << "Start robot with watchdog (";
+        rt_mutex_acquire(&mutex_robot, TM_INFINITE);
+        msgSend = robot.Write(robot.StartWithoutWD());//StartWithoutWD
+        rt_mutex_release(&mutex_robot);
+        cout << msgSend->GetID();
+        cout << ")" << endl;
+
+        cout << "Start answer: " << msgSend->ToString() << endl << flush;
+        
+        if (msgSend->GetID() == MESSAGE_ANSWER_ACK) {
+            rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
+            
+            robotStarted = 1;
+            
+           // int err;
+            
+           /* if (err = rt_task_start(&th_startRobotWD, (void(*)(void*)) & Tasks::ReloadWatchdog, this)) {
+                cerr << "Error task start: " << strerror(-err) << endl << flush;
+                exit(EXIT_FAILURE);
+            }*/
+           
+            rt_mutex_release(&mutex_robotStarted);
+        }
+        
+        WriteInQueue(&q_messageToMon, msgSend);  // msgSend will be sended to Monitor and be deleted by sendToMon
+
+    }
+}
+
+void Tasks::ReloadWatchdog(void *arg) {
+    
+    rt_task_set_periodic(NULL, TM_NOW, 1000000000);
+    
+    Message * msgSend;
+    cout << "Reload watchdog (";
+    msgSend = robot.Write(robot.ReloadWD());
+    cout << msgSend->GetID();
+    cout << ")" << endl;
+    
+    WriteInQueue(&q_messageToMon, msgSend);
+ 
+}
 /**
  * @brief Thread handling control of the robot.
  * 
