@@ -193,7 +193,6 @@ void Tasks::Run() {
         cerr << "Error task start: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
-
     if (err = rt_task_start(&th_levelBat, (void(*)(void*)) & Tasks::BatteryTask, this)) {
         cerr << "Error task start: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
@@ -464,9 +463,20 @@ void Tasks::BatteryTask(void *arg) {
            cout << endl << "Level battery update";
            rt_mutex_acquire(&mutex_robot, TM_INFINITE);
            Message* levelBat=robot.Write(ComRobot::GetBattery());//envoyer ordre de mouvement au robot
-           WriteInQueue(&q_messageToMon,levelBat);
            rt_mutex_release(&mutex_robot);
-           cout << endl << flush;
+           
+           
+           //CheckRobotMessage(levelBat);
+            
+
+            if ((*levelBat).CompareID(MESSAGE_ROBOT_BATTERY_LEVEL)){
+                WriteInQueue(&q_messageToMon,levelBat);
+            }
+            else{
+                cout << "Error" << levelBat->ToString() << endl << flush;
+
+            }
+           
         }//fin si
     }
 }
@@ -541,11 +551,11 @@ void Tasks::DetectComLostMonitor(void *arg){
          
             cout << "Stop robot (" << endl << flush;
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
-            msgSend = robot.Write(robot.PowerOff());
+            msgSend = robot.Write(robot.Stop());
             rt_mutex_release(&mutex_robot);
             cout << msgSend->GetID();
             cout << ")" << endl << flush;
-
+            
            // WriteInQueue(&q_messageToMon, msgSend);  // msgSend will be deleted by sendToMon
 
             if (msgSend->GetID() == MESSAGE_ANSWER_ACK) {
@@ -553,10 +563,34 @@ void Tasks::DetectComLostMonitor(void *arg){
                 robotStarted = 0;
                 rt_mutex_release(&mutex_robotStarted);
             }
+            
+            int status =0;
+            
+            cout << "Stop commnunication with robot (" ;
+            rt_mutex_acquire(&mutex_robot, TM_INFINITE);
+            status = robot.close();
+            rt_mutex_release(&mutex_robot);
+            cout << ")" << endl << flush;
+            
         }
         
+        int status;
+
+        /**************************************************************************************/
+        /* The task server starts here                                                        */
+        /**************************************************************************************/
+        rt_mutex_acquire(&mutex_monitor, TM_INFINITE);
+        status = monitor.Close();
+        rt_mutex_release(&mutex_monitor);
+
+        cout << "Stop server "<< " (" << status << ")" << endl;
+
+        if (status < 0) throw std::runtime_error {
+            "Unable to stop server " 
+        };
         
-       
+        rt_sem_broadcast(&sem_serverOk);
+        rt_sem_p(&sem_serverOk, TM_INFINITE);
         
         
         
