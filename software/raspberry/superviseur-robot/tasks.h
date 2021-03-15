@@ -146,7 +146,7 @@ private:
     */
     void DetectComLostMonitor(void *arg);
     
-
+    /*
      * @brief Thread handling battery.
      */
     void BatteryTask(void *arg);
