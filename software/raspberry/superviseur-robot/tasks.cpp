@@ -135,6 +135,10 @@ void Tasks::Init() {
         cerr << "Error task create: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
+    if (err = rt_task_create(&th_detectComLostMonitor, "th_detectComLostMonitor", 0, PRIORITY_TMOVE, 0)) {
+        cerr << "Error task create: " << strerror(-err) << endl << flush;
+        exit(EXIT_FAILURE);
+    }
 
     cout << "Tasks created successfully" << endl << flush;
 
@@ -276,10 +280,9 @@ void Tasks::ReceiveFromMonTask(void *arg) {
         cout << "Rcv <= " << msgRcv->ToString() << endl << flush;
 
         if (msgRcv->CompareID(MESSAGE_MONITOR_LOST)) {
-            //delete(msgRcv);
-            //exit(-1);
+            
             rt_sem_v(&sem_errSocket);
-            rt_sem_p(&sem_serverOk, TM_INFINITE);
+            //rt_sem_p(&sem_serverOk, TM_INFINITE);
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_COM_OPEN)) {
             rt_sem_v(&sem_openComRobot);
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_START_WITHOUT_WD)) {
@@ -458,7 +461,12 @@ void Tasks::DetectComLostMonitor(void *arg){
     /**************************************************************************************/
     while(1){
         rt_sem_p(&sem_errSocket, TM_INFINITE);
-        rt_mutex_acquire(&mutex_monitor, TM_INFINITE);
+        
+        Message * msgSend;
+        cout << "Communication between monitor and supervisor lost" << endl;
+
+        WriteInQueue(&q_messageToMon, msgSend);  
+        /*rt_mutex_acquire(&mutex_monitor, TM_INFINITE);
         monitor.Close();
         rt_mutex_release(&mutex_monitor);
         rt_mutex_acquire(&mutex_robot, TM_INFINITE);
@@ -473,7 +481,7 @@ void Tasks::DetectComLostMonitor(void *arg){
         move = MESSAGE_ROBOT_STOP;
         rt_mutex_release(&mutex_move);
 
-        rt_sem_v(&sem_restartServer);
+        rt_sem_v(&sem_restartServer);*/
     }
 }
 
