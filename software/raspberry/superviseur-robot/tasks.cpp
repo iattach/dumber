@@ -496,7 +496,7 @@ void Tasks::BatteryTask(void *arg) {
 
     while (1) {
         rt_task_wait_period(NULL);
-        cout << "Level battery update";
+        cout <<endl << "Level battery update";
         rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
         rs = robotStarted;
         rt_mutex_release(&mutex_robotStarted);
