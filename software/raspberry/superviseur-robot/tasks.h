@@ -67,7 +67,12 @@ private:
     ComRobot robot;
     int robotStarted = 0;
     int move = MESSAGE_ROBOT_STOP;
+<<<<<<< HEAD
 
+=======
+    bool watchdog = false;
+    
+>>>>>>> master
     /**********************************************************************/
     /* Tasks                                                              */
     /**********************************************************************/
@@ -78,8 +83,13 @@ private:
     RT_TASK th_startRobot;
     RT_TASK th_startRobotWD; //FONCTION 11
     RT_TASK th_move;
+<<<<<<< HEAD
     RT_TASK th_levelBat; //fonction 13
     RT_TASK th_reloadWatchdog;
+=======
+    RT_TASK th_detectComLostMonitor;
+    RT_TASK th_levelBat;
+>>>>>>> master
     
     /**********************************************************************/
     /* Mutex                                                              */
@@ -88,6 +98,7 @@ private:
     RT_MUTEX mutex_robot;
     RT_MUTEX mutex_robotStarted;
     RT_MUTEX mutex_move;
+    RT_MUTEX mutex_watchdog;
 
 
     /**********************************************************************/
@@ -97,7 +108,12 @@ private:
     RT_SEM sem_openComRobot;
     RT_SEM sem_serverOk;
     RT_SEM sem_startRobot;
+<<<<<<< HEAD
     RT_SEM sem_startRobotWD; //FONCTION 11
+=======
+    RT_SEM sem_errSocket;
+    RT_SEM sem_restartServer;
+>>>>>>> master
 
     /**********************************************************************/
     /* Message queues                                                     */
@@ -152,6 +168,12 @@ private:
     void MoveTask(void *arg);
 
     /**
+
+    * @brief Thread detecting communication lost with monitor.
+    */
+    void DetectComLostMonitor(void *arg);
+    
+
      * @brief Thread handling battery.
      */
     void BatteryTask(void *arg);
