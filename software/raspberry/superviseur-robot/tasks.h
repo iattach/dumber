@@ -85,6 +85,7 @@ private:
     RT_TASK th_levelBat; //fonction 13
     RT_TASK th_reloadWatchdog;
     RT_TASK th_detectComLostMonitor;
+    RT_TASK th_rechargeWD;
     
     /**********************************************************************/
     /* Mutex                                                              */
@@ -111,6 +112,7 @@ private:
     RT_SEM sem_errSocket;
     RT_SEM sem_errSocketRobot;
     RT_SEM sem_restartServer;
+    RT_SEM sem_rechargeWD;
 
     /**********************************************************************/
     /* Message queues                                                     */
