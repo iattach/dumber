@@ -768,7 +768,7 @@ void Tasks::DetectComLostMonitor(void *arg){
         cout << "Stop server "<< endl;
         
         rt_sem_broadcast(&sem_serverOk);
-        rt_sem_p(&sem_serverOk, TM_INFINITE);
+        
         
         rt_mutex_acquire(&mutex_camera, TM_INFINITE);
         camera.Close();
