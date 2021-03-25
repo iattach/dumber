@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #Mon Mar 15 10:49:48 CET 2021
+=======
+#Mon Mar 15 11:50:36 CET 2021
+>>>>>>> master
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/lib/comrobot.h=c1614931978000
 <<<<<<<=HEAD
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/lib/comrobot.cpp=c1614932265000
@@ -21,7 +25,11 @@
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/lib/base64/compile-and-run-test=c1614931978000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/superviseur.doxygen=c1614931978000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/nbproject/Makefile-Debug__PC_.mk=c1614932265000
+<<<<<<< HEAD
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/tasks.cpp=c1615798746000
+=======
+/home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/tasks.cpp=c1615805431000
+>>>>>>> master
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/lib/camera.h=c1614931978000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/lib/messages.cpp=c1614932265000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/nbproject/Makefile-variables.mk=c1614931978000
@@ -56,21 +64,34 @@ VERSION=1.3
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/nbproject/private/Makefile-variables.mk=c1614932265000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/nbproject/project.xml=c1614932265000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/nbproject/Package-Debug__PC_.bash=c1614931978000
+<<<<<<< HEAD
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/tasks.cpp=c1615801778000
+=======
+/home/hou/Bureau/dumber/software/raspberry/superviseur-robot/tasks.cpp=c1614937983000
+>>>>>>> master
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/lib/base64/test.cpp=c1614932265000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/.dep.inc=c1615532737000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/.gitignore=c1614931978000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/gdbsudo.sh=c1614931978000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/lib/camera.cpp=c1614932265000
+<<<<<<< HEAD
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/tasks.h=c1615801750000
+=======
+/home/hou/Bureau/dumber/software/raspberry/superviseur-robot/tasks.h=c1614937034000
+>>>>>>> master
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/lib/base64/compile-and-run-test=c1614932265000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/.dep.inc=c1614932265000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/lib/messages.h=c1614931978000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/nbproject/project.properties=c1614932265000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/nbproject/Package-Debug__PC_.bash=c1614932265000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/nbproject/Makefile-variables.mk=c1614932265000
+<<<<<<< HEAD
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/tasks.h=c1615542463000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/nbproject/Makefile-impl.mk=c1614931978000
+=======
+/home/hou/Bureau/dumber/software/raspberry/superviseur-robot/nbproject/Makefile-impl.mk=c1614931978000
+/home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/tasks.h=c1615799760000
+>>>>>>> master
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/lib/comrobot.cpp=c1614931978000
 /home/yu_yang/Bureau/git_em/Temps_reel/dumber/software/raspberry/superviseur-robot/nbproject/Makefile-Debug__RPI_.mk=c1614932265000
 /home/hou/Bureau/dumber/software/raspberry/superviseur-robot/lib/base64/base64.cpp=c1614931978000

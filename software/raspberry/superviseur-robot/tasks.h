@@ -64,9 +64,14 @@ private:
     /* Shared data                                                        */
     /**********************************************************************/
     ComMonitor monitor;
+    Camera camera;
     ComRobot robot;
     int robotStarted = 0;
+    int cameraStarted = 0;
     int move = MESSAGE_ROBOT_STOP;
+    bool watchdog = false;
+    int robotMsgLost = 0;
+    
     /**********************************************************************/
     /* Tasks                                                              */
     /**********************************************************************/
@@ -85,10 +90,13 @@ private:
     /* Mutex                                                              */
     /**********************************************************************/
     RT_MUTEX mutex_monitor;
+    RT_MUTEX mutex_camera;
     RT_MUTEX mutex_robot;
     RT_MUTEX mutex_robotStarted;
+    RT_MUTEX mutex_cameraStarted;
     RT_MUTEX mutex_move;
     RT_MUTEX mutex_watchdog;
+    RT_MUTEX mutex_robotMsgLost;
 
 
     /**********************************************************************/
@@ -99,7 +107,9 @@ private:
     RT_SEM sem_serverOk;
     RT_SEM sem_startRobot;
     RT_SEM sem_startRobotWD; //FONCTION 11
+    RT_SEM sem_startCamera;
     RT_SEM sem_errSocket;
+    RT_SEM sem_errSocketRobot;
     RT_SEM sem_restartServer;
 
     /**********************************************************************/
@@ -159,6 +169,12 @@ private:
     * @brief Thread detecting communication lost with monitor.
     */
     void DetectComLostMonitor(void *arg);
+    
+    /**
+
+    * @brief Thread detecting communication lost with robot.
+    */
+    void DetectComLostRobot(void *arg);
     
     /*
      * @brief Thread handling battery.
