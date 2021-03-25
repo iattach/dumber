@@ -312,7 +312,6 @@ void Tasks::ReceiveFromMonTask(void *arg) {
             rt_sem_v(&sem_startRobot);
         }else if (msgRcv->CompareID(MESSAGE_ROBOT_START_WITH_WD)) {
             rt_mutex_acquire(&mutex_watchdog, TM_INFINITE);
-            watchdog = true; 
             rt_mutex_release(&mutex_watchdog);
             rt_sem_v(&sem_startRobot);
 
