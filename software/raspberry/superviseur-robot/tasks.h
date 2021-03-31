@@ -85,6 +85,7 @@ private:
     RT_TASK th_levelBat; //fonction 13
     RT_TASK th_reloadWatchdog;
     RT_TASK th_detectComLostMonitor;
+    RT_TASK th_detectComLostRobot;
     RT_TASK th_rechargeWD;
     
     /**********************************************************************/
@@ -159,7 +160,7 @@ private:
      *              
      *        Fonction 11
      */
-    void ReloadWatchdog(void *arg);
+    void RechargeWDTask(void *arg);
 
     /**
      * @brief Thread handling control of the robot.

@@ -26,10 +26,21 @@
 #include <string>
 #include <stdexcept>
 
+#define __SIMULATION__ 1
+
+#ifdef __SIMULATION__
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+int sock = 0;
+string host = "127.0.0.1";
+#define PORT 6699
+#endif
+
 #ifdef __FOR_PC__
-#define USART_FILENAME "/dev/ttyUSB0"
-#else
 #define USART_FILENAME "/dev/ttyS0"
+#else
+#define USART_FILENAME "/dev/ttyUSB0"
 #endif /* __FOR_PC__ */
 
 /*
@@ -71,6 +82,33 @@ int ComRobot::Open() {
 int ComRobot::Open(string usart) {
     struct termios options;
 
+#ifdef __SIMULATION__
+
+    struct sockaddr_in serv_addr;
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("\n Socket creation error \n");
+        return -1;
+    }
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 200000;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*) &tv, sizeof tv);
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+
+    // Convert IPv4 and IPv6 addresses from text to binary form 
+    if (inet_pton(AF_INET, host.c_str(), &serv_addr.sin_addr) <= 0) {
+        printf("\nInvalid address/ Address not supported \n");
+        return -1;
+    }
+
+    if (connect(sock, (struct sockaddr *) &serv_addr, sizeof (serv_addr)) < 0) {
+        return -1;
+    }
+    return 1;
+#else
+
     fd = open(usart.c_str(), O_RDWR | O_NOCTTY /*| O_NDELAY*/); //Open in blocking read/write mode
     if (fd == -1) {
         cerr << "[" << __PRETTY_FUNCTION__ << "] Unable to open UART (" << usart << "). Ensure it is not in use by another application" << endl << flush;
@@ -88,6 +126,37 @@ int ComRobot::Open(string usart) {
     }
 
     return fd;
+#endif
+}
+
+int ComRobot::Open(string shost, int nport) {
+#ifdef __SIMULATION__
+
+    struct sockaddr_in serv_addr;
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("\n Socket creation error \n");
+        return -1;
+    }
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 200000;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*) &tv, sizeof tv);
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(nport);
+
+    if (inet_pton(AF_INET, shost.c_str(), &serv_addr.sin_addr) <= 0) {
+        cout << "Invalid address/ Address not supported" << endl;
+        return -1;
+    }
+
+    if (connect(sock, (struct sockaddr *) &serv_addr, sizeof (serv_addr)) < 0) {
+        return -2;
+    }
+    return 1;
+#else
+    return -1;
+#endif
 }
 
 /**
@@ -95,7 +164,11 @@ int ComRobot::Open(string usart) {
  * @return Success if above 0, failure if below 0
  */
 int ComRobot::Close() {
+#ifdef __SIMULATION__
+    return close(sock);
+#else
     return close(fd);
+#endif
 }
 
 /**
@@ -115,6 +188,28 @@ Message *ComRobot::Write(Message* msg) {
         Write_Pre();
 
         s = MessageToString(msg);
+#ifdef __SIMULATION__
+        s += "\r";
+
+        char buffer[1024] = {0};
+        cout << "[" << __PRETTY_FUNCTION__ << "] Send command: " << s << endl << flush;
+        send(sock, s.c_str(), s.length(), MSG_NOSIGNAL);
+
+        int valread = read(sock, buffer, 1024);
+
+        if (valread == 0) {
+            cout << "The communication is out of order" << endl;
+            msgAnswer = new Message(MESSAGE_ANSWER_COM_ERROR);
+        } else if (valread < 0) {
+            cout << "Timeout" << endl;
+            msgAnswer = new Message(MESSAGE_ANSWER_ROBOT_TIMEOUT);
+        } else {
+            string s(&buffer[0], valread);
+            msgAnswer = StringToMessage(s);
+            cout << "Response: " << buffer << ", id: " << msgAnswer->GetID() << endl;
+        }
+
+#else       
         AddChecksum(s);
 
         //cout << "[" <<__PRETTY_FUNCTION__<<"] Send command: "<<s<<endl<<flush;
@@ -143,6 +238,7 @@ Message *ComRobot::Write(Message* msg) {
                 }
             }
         }
+#endif
     } else {
         cerr << __PRETTY_FUNCTION__ << ": Com port not open" << endl << flush;
         throw std::runtime_error{"Com port not open"};
