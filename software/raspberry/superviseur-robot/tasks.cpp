@@ -22,10 +22,14 @@
 // Déclaration des priorités des taches
 #define PRIORITY_TSERVER 30
 #define PRIORITY_TOPENCOMROBOT 20
+#define PRIORITY_TDETECTCOMLOSTMON 27
+#define PRIORITY_TDETECTCOMLOST 26
 #define PRIORITY_TMOVE 20
 #define PRIORITY_TSENDTOMON 22
 #define PRIORITY_TRECEIVEFROMMON 25
 #define PRIORITY_TSTARTROBOT 20
+#define PRIORITY_TRCWD 19
+#define PRIORITY_TLEVELBAT 22
 #define PRIORITY_TCAMERA 21
 
 /*
@@ -156,20 +160,20 @@ void Tasks::Init() {
         cerr << "Error task create: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
-    if (err = rt_task_create(&th_detectComLostMonitor, "th_detectComLostMonitor", 0, PRIORITY_TMOVE, 0)) {
+    if (err = rt_task_create(&th_detectComLostMonitor, "th_detectComLostMonitor", 0, PRIORITY_TDETECTCOMLOSTMON, 0)) {
         cerr << "Error task create: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
-    if (err = rt_task_create(&th_detectComLostRobot, "th_detectComLostRobot", 0,PRIORITY_TMOVE, 0)) {
+    if (err = rt_task_create(&th_detectComLostRobot, "th_detectComLostRobot", 0, PRIORITY_TDETECTCOMLOST, 0)) {
         cerr << "Error task create: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
     
-    if (err = rt_task_create(&th_levelBat, "th_levelBat", 0, PRIORITY_TMOVE, 0)) {
+    if (err = rt_task_create(&th_levelBat, "th_levelBat", 0, PRIORITY_TLEVELBAT, 0)) {
         cerr << "Error task create: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
-    if (err = rt_task_create(&th_rechargeWD, "th_rechargeWD", 0, PRIORITY_TSTARTROBOT, 0)) {
+    if (err = rt_task_create(&th_rechargeWD, "th_rechargeWD", 0, PRIORITY_TRCWD, 0)) {
         cerr << "Error task create: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
     }
