@@ -15,15 +15,9 @@ Depot du projet de temps reel 4eme année au departement GEI de l'INSA Toulouse.
 
 ## Fonctionnalité réalisé
 
-Fonctionnalité déjà existe: 1, 2, 3, 4, 7,10 et 12 
+Fonctionnalité déjà existe: 1, 2, 3, 4, 7, 10 et 12 
 
-Fonctionnalité attendue: 9,11
-
-Fonctionnalité en cours : 8,
-
-Fonctionnalité à tester : 
-
-Fonctionnalité faite : 5,6
+Fonctionnalité faite : 5, 6, 8, 9, 11, 13
 
 
 

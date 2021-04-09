@@ -80,9 +80,9 @@ private:
     RT_TASK th_receiveFromMon;
     RT_TASK th_openComRobot;
     RT_TASK th_startRobot;
-    RT_TASK th_startRobotWD; //FONCTION 11
+    RT_TASK th_startRobotWD; 
     RT_TASK th_move;
-    RT_TASK th_levelBat; //fonction 13
+    RT_TASK th_levelBat; 
     RT_TASK th_reloadWatchdog;
     RT_TASK th_detectComLostMonitor;
     RT_TASK th_detectComLostRobot;
@@ -108,7 +108,7 @@ private:
     RT_SEM sem_openComRobot;
     RT_SEM sem_serverOk;
     RT_SEM sem_startRobot;
-    RT_SEM sem_startRobotWD; //FONCTION 11
+    RT_SEM sem_startRobotWD; 
     RT_SEM sem_startCamera;
     RT_SEM sem_errSocket;
     RT_SEM sem_errSocketRobot;

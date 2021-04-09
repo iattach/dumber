@@ -336,17 +336,24 @@ void Tasks::ReceiveFromMonTask(void *arg) {
         cout << "Rcv <= " << msgRcv->ToString() << endl << flush;
 
         if (msgRcv->CompareID(MESSAGE_MONITOR_LOST)) {
-            //delete(msgRcv);
+
             rt_sem_v(&sem_errSocket);
             rt_sem_p(&sem_serverOk, TM_INFINITE);
+
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_COM_OPEN)) {
+
             rt_sem_v(&sem_openComRobot);
+
         }  else if (msgRcv->CompareID(MESSAGE_ROBOT_START_WITHOUT_WD)) {
+
             rt_sem_v(&sem_startRobot);
+
         }else if (msgRcv->CompareID(MESSAGE_ROBOT_START_WITH_WD)) {
+
             rt_mutex_acquire(&mutex_watchdog, TM_INFINITE);
             watchdog =true;
             rt_mutex_release(&mutex_watchdog);
+            
             rt_sem_v(&sem_startRobotWD);
 
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_GO_FORWARD) ||
@@ -382,18 +389,25 @@ void Tasks::OpenComRobot(void *arg) {
         rt_sem_p(&sem_openComRobot, TM_INFINITE);
         cout << "Open serial com (";
         rt_mutex_acquire(&mutex_robot, TM_INFINITE);
-        //status = robot.Open();
-        status= robot.Open("10.0.2.15",6699);
+
+#ifdef __SIMULATION__
+        status= robot.Open("127.0.0.1",6699);
+#else
+        status = robot.Open();
+#endif        
+
         rt_mutex_release(&mutex_robot);
         cout << status;
         cout << ")" << endl << flush;
 
         Message * msgSend;
+
         if (status < 0) {
             msgSend = new Message(MESSAGE_ANSWER_NACK);
         } else {
             msgSend = new Message(MESSAGE_ANSWER_ACK);
         }
+        
         WriteInQueue(&q_messageToMon, msgSend); // msgSend will be deleted by sendToMon
     }
 }
@@ -423,9 +437,10 @@ void Tasks::StartRobotTask(void *arg) {
 
         cout << "Start answer: " << msgSend->ToString() << endl << flush;
 
-        WriteInQueue(&q_messageToMon, msgSend);  // msgSend will be deleted by sendToMon
+        WriteInQueue(&q_messageToMon, msgSend);  
 
         if (msgSend->GetID() == MESSAGE_ANSWER_ACK) {
+
             rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
             robotStarted = 1;
             rt_mutex_release(&mutex_robotStarted);
@@ -433,6 +448,7 @@ void Tasks::StartRobotTask(void *arg) {
             rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
             robotMsgLost = 0;
             rt_mutex_release(&mutex_robotMsgLost);
+
         }else{
             rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
             robotStarted=1;
@@ -441,6 +457,7 @@ void Tasks::StartRobotTask(void *arg) {
             rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
             robotMsgLost++;
             rt_mutex_release(&mutex_robotMsgLost);
+
             rt_sem_v(&sem_errSocketRobot);
         }
     }
@@ -465,7 +482,7 @@ void Tasks::StartRobotTaskWD(void *arg) {
         rt_sem_p(&sem_startRobotWD, TM_INFINITE);
         cout << "Start robot with watchdog (";
         rt_mutex_acquire(&mutex_robot, TM_INFINITE);
-        msgSend = robot.Write(robot.StartWithoutWD());//StartWithoutWD
+        msgSend = robot.Write(robot.StartWithWD());
         rt_mutex_release(&mutex_robot);
         cout << msgSend->GetID();
         cout << ")" << endl;
@@ -473,6 +490,7 @@ void Tasks::StartRobotTaskWD(void *arg) {
         cout << "Start answer: " << msgSend->ToString() << endl << flush;
         
         if (msgSend->GetID() == MESSAGE_ANSWER_ACK) {
+
             rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
             robotStarted = 1;
             rt_mutex_release(&mutex_robotStarted);
@@ -480,7 +498,9 @@ void Tasks::StartRobotTaskWD(void *arg) {
             rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
             robotMsgLost = 0;
             rt_mutex_release(&mutex_robotMsgLost);
+
         }else{
+
             rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
             robotStarted=0;
             rt_mutex_release(&mutex_robotStarted);
@@ -488,10 +508,12 @@ void Tasks::StartRobotTaskWD(void *arg) {
             rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
             robotMsgLost++;
             rt_mutex_release(&mutex_robotMsgLost);
+
             rt_sem_v(&sem_errSocketRobot);
         }
         
-        WriteInQueue(&q_messageToMon, msgSend);  // msgSend will be sended to Monitor and be deleted by sendToMon
+        WriteInQueue(&q_messageToMon, msgSend); 
+
         rt_sem_v(&sem_rechargeWD);
     }
 }
@@ -515,30 +537,39 @@ void Tasks::RechargeWDTask(void *arg) {
     rt_task_set_periodic(NULL, TM_NOW, 50000000);
     
     while (1) {
-        //rt_task_wait_period(NULL);
+        
         rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
         rs = robotStarted;
         rt_mutex_release(&mutex_robotStarted);
+
         rt_mutex_acquire(&mutex_watchdog, TM_INFINITE);
         wd = watchdog ;
         rt_mutex_release(&mutex_watchdog);
        
         if (rs == 1 && wd) {
+
+            //ask robot to reload watchdog
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
             msgSend=robot.Write(robot.ReloadWD());
             rt_mutex_release(&mutex_robot);
             
             if (msgSend->GetID() == MESSAGE_ANSWER_ACK) {
+
                 rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
                 robotMsgLost = 0;
                 rt_mutex_release(&mutex_robotMsgLost);
+
             }else{
+
                 rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
                 robotMsgLost++;
                 rt_mutex_release(&mutex_robotMsgLost);
+
                 rt_sem_v(&sem_errSocketRobot);
             }
-            WriteInQueue(&q_messageToMon, msgSend);  // msgSend will be deleted by sendToMon
+
+            WriteInQueue(&q_messageToMon, msgSend);  
+
             cout <<endl<< "Reload Watchdog"<< endl ;
         }
     }
@@ -546,18 +577,9 @@ void Tasks::RechargeWDTask(void *arg) {
 /**
  * @brief Thread handling control of the robot.
  * 
- * Fonction : déplacer robot
- * 
- * tant que périodiquement (100 ms) 
- *  si robot démarré est vrai    
- *      lire mouvement    
- *      envoyer ordre de mouvement au robot
- *  fin si
- * fin tant que
  */
 void Tasks::MoveTask(void *arg) {
     int rs;
-    int lost =0;
     int cpMove;
     Message* msgSend;
     
@@ -571,56 +593,59 @@ void Tasks::MoveTask(void *arg) {
     rt_task_set_periodic(NULL, TM_NOW, 100000000);//tant que périodiquement (100 ms) 
 
     while (1) {
+
         rt_task_wait_period(NULL);
         rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
         rs = robotStarted;
         rt_mutex_release(&mutex_robotStarted);
-        if (rs == 1  ) {//si robot démarré est vrai
+
+        if (rs == 1  ) {
             
             
             cout << "Periodic movement update";
             rt_mutex_acquire(&mutex_move, TM_INFINITE);
-            cpMove = move;//lire mouvement   
+            cpMove = move;
             rt_mutex_release(&mutex_move);
 
 
             cout << " move: " << cpMove;
 
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
-            msgSend = robot.Write(new Message((MessageID)cpMove));//envoyer ordre de mouvement au robot
+            msgSend = robot.Write(new Message((MessageID)cpMove));
             rt_mutex_release(&mutex_robot);
             cout << endl << flush;
            
             
             if (msgSend->GetID() == MESSAGE_ANSWER_ACK ) {    
+
                 rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
                 robotMsgLost = 0;
                 rt_mutex_release(&mutex_robotMsgLost);
-                lost = 1 ;
+
             }else{        
-                lost = 0;
+
                 rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
                 robotMsgLost++;
                 rt_sem_v(&sem_errSocketRobot);
+
                 rt_mutex_release(&mutex_robotMsgLost);
-                //rt_sem_v(&sem_errRobot);
+                
             }
             
-        }//fin si
+        }
         
     }
 }
+
 /**
  * @brief Thread handling battery.
- * 
-
-Fonction : récupérer le niveau de la batterie
-
-tant que péridodiquement (500ms)
- poster messageToMon levelBat
-fin tant que s
- * 
+ *
+ *Fonction : récupérer le niveau de la batterie
+ *tant que péridodiquement (500ms)
+ * poster messageToMon levelBat
+ *fin tant que s 
  */
+
 void Tasks::BatteryTask(void *arg) {
     int rs;
     int cpMove;
@@ -641,18 +666,20 @@ void Tasks::BatteryTask(void *arg) {
         rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
         rs = robotStarted;
         rt_mutex_release(&mutex_robotStarted);
-        if (rs == 1) {//si robot démarré est vrai  
-            
-            
+        
+        if (rs == 1) {
+                
             cout << endl << "Level battery update" << endl ;
-            rt_mutex_acquire(&mutex_robot, TM_INFINITE);
 
-            msgSend = robot.Write(robot.GetBattery());//envoyer ordre de mouvement au robot
+            //send the request to robot to get the battery information
+            rt_mutex_acquire(&mutex_robot, TM_INFINITE);
+            msgSend = robot.Write(robot.GetBattery());
             rt_mutex_release(&mutex_robot);
 
             WriteInQueue(&q_messageToMon,msgSend);
            
-           if (msgSend->GetID() == MESSAGE_ROBOT_BATTERY_LEVEL  ) {    
+           if (msgSend->GetID() == MESSAGE_ROBOT_BATTERY_LEVEL  ) {
+
                 rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
                 robotMsgLost = 0;
                 rt_mutex_release(&mutex_robotMsgLost);
@@ -662,6 +689,7 @@ void Tasks::BatteryTask(void *arg) {
                 rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
                 robotMsgLost++;
                 rt_sem_v(&sem_errSocketRobot);
+
                 rt_mutex_release(&mutex_robotMsgLost);
            
             }
@@ -724,23 +752,22 @@ void Tasks::DetectComLostMonitor(void *arg){
     while(1){
         rt_sem_p(&sem_errSocket, TM_INFINITE);
         
-        //fonction 5
         cout << "Communication between monitor and supervisor lost" << endl;
         
+        //close the communication with the monitor
         rt_mutex_acquire(&mutex_monitor, TM_INFINITE);
         monitor.Close();
         rt_mutex_release(&mutex_monitor);   
         
-       
-        //fonction 6
+    
         rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
         int rs= robotStarted;
         rt_mutex_release(&mutex_robotStarted);
       
         
         if (rs){
+            //stop the robot
             Message * msgSend;
-            //fonction 6
             
             rt_mutex_acquire(&mutex_move, TM_INFINITE);
             move = MESSAGE_ROBOT_STOP;
@@ -748,18 +775,21 @@ void Tasks::DetectComLostMonitor(void *arg){
             
             cout << "Periodic movement update";
             rt_mutex_acquire(&mutex_move, TM_INFINITE);
-            cpMove = move;//lire mouvement   
+            cpMove = move;
             rt_mutex_release(&mutex_move);
 
 
             cout << " move: " << cpMove;
 
+            //send to the instruction "stop" to robot
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
-            msgSend = robot.Write(new Message((MessageID)cpMove));//envoyer ordre de mouvement au robot
+            msgSend = robot.Write(new Message((MessageID)cpMove));
             rt_mutex_release(&mutex_robot);
             cout << endl << flush;
             
+            //detect the lost message
             if (msgSend->GetID() == MESSAGE_ANSWER_ACK ) {    
+                
                 rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
                 robotMsgLost = 0;
                 rt_mutex_release(&mutex_robotMsgLost);
@@ -777,8 +807,7 @@ void Tasks::DetectComLostMonitor(void *arg){
             robotStarted = 0;
             rt_mutex_release(&mutex_robotStarted);
             
-            
-            
+            //close the communication
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
             resp=robot.Close();
             rt_mutex_release(&mutex_robot);
@@ -798,20 +827,18 @@ void Tasks::DetectComLostMonitor(void *arg){
 
         cout << "Stop server "<< endl;
         
-        //rt_sem_broadcast(&sem_serverOk);
-        
-        
         rt_mutex_acquire(&mutex_watchdog, TM_INFINITE);
         watchdog = false;
         rt_mutex_release(&mutex_watchdog);
         
-        //rt_sem_v(&sem_openComRobot);
         rt_sem_v(&sem_restartServer);
         
 
     }
 }
-
+/**
+ * @brief Thread detecting the lost of communication between robot and superviseur
+ */
 void Tasks::DetectComLostRobot(void *arg){
     int cpt =0;
     int resp;
@@ -828,23 +855,23 @@ void Tasks::DetectComLostRobot(void *arg){
         rt_sem_p(&sem_errSocketRobot, TM_INFINITE);
         
         rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
-         cpt = robotMsgLost;
+        cpt = robotMsgLost;
         rt_mutex_release(&mutex_robotMsgLost);
-        //fonction 5
+
         cout << "Communication between robot and supervisor lost" << endl;
         
+        //if the number of lost message equals 3, robot will be stopped
         if(cpt==3){
             
             msgSend=new Message(MESSAGE_ANSWER_ROBOT_TIMEOUT);
             WriteInQueue(&q_messageToMon,msgSend);
                   
-            //fonction 6
-            
             rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
             robotStarted=0;
             cout << "state of robot : "<<robotStarted<<endl;
             rt_mutex_release(&mutex_robotStarted);
-            
+
+            //close the communication
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
             resp =robot.Close();
             rt_mutex_release(&mutex_robot);
@@ -863,8 +890,6 @@ void Tasks::DetectComLostRobot(void *arg){
             rt_mutex_acquire(&mutex_robotMsgLost, TM_INFINITE);
             robotMsgLost = 0;
             rt_mutex_release(&mutex_robotMsgLost);
-        
-            //rt_sem_v(&sem_openComRobot);
             
         }
         
